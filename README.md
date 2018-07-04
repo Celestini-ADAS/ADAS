@@ -1,8 +1,12 @@
 # ADAS
 The project is meant to run on a raspi (has not been tested yet but its mostly just running python scripts with some really really common dependencies. The backend files (COMS.py, vision.py) have been tested on a laptop. 
+
 external dependencies : 
+
 opencv (2.4 or better) (pip install python-opencv-3.2.0)
+
 numpy (pip install numpy)
+
 serial (pip install pyserial)
 
 # WHAT DO:
