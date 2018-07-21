@@ -14,11 +14,11 @@ info_Tx = np.ones(5) #info to transfer
 time_Stamp = time.time()
 
 Tx.send(info_Tx) # sending info
-while(not Rx.check_recv()):
+while(not Rx.check_recv()): #wait until new info received
 	pass
 
 delT = time.time() - time_Stamp
-info_Rx = Rx.read()
+info_Rx = Rx.read() #returns numpy array of 5 floating point numbers
 
 print(delT)
 print(info_Rx)
