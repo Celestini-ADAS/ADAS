@@ -105,6 +105,7 @@ alert = np.zeros(3)
 threshold = np.array([0.35,0.35,0.35])
 
 def check(img, gray, prevgray): # assumes that the images are already in grayscale 
+    original_img = img
     f = 6
     input_size = np.array([100,75])
     input_size = input_size.astype(int)
