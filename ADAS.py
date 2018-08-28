@@ -7,24 +7,22 @@ from COMS import * # same
 
 #initialize coms
 V2V = com_handler()
-V2V._init_('COM4',230400,40)
+V2V._init_('/dev/ttyUSB1',230400,40)
 
 phone = com_handler()
-phone.initialize('dev/tty/USB0',250000,48)
-cap = np.load('Test1.npy') # test video stored in numpy format because opencv in raspi didn't work with .MOV files.
-#cap = cv2.VideoCapture('Test2.MOV') 
+phone.initialize('/dev/ttyUSB0',230400,40)
+#cap = np.load('Test1.npy') # test video stored in numpy format because opencv in raspi didn't work with .MOV files.
+
+cap = cv2.VideoCapture(1) 
 #initialize stuff for vision 
 img = cap[0][0]
 prev_gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
 
 broadcast_Rx = np.zeros(5)
 
-# state = np.zeros(6) # state array. lon,lat,speed,direction,time_stamp(RTC),acceleration along direction of movement.
-state = np.array([10,10,15,45,0,1],dtype=float) # static coordinates for testing purposes
+state = np.zeros(5)
 def check_Relevance(state,broadcast_Rx):
 	L=2
-	if((state[4]-broadcast_Rx[4])>10):
-		return 0
 	A_X = -m.cos(state[3]*0.01745)
 	A_Y = -m.sin(state[3]*0.01745)
 
@@ -32,8 +30,8 @@ def check_Relevance(state,broadcast_Rx):
 	Xs = broadcast_Rx[0]
 	Yr = state[1]
 	Ys = broadcast_Rx[1]
-	dX = Xr-Xs
-	dY = Yr-Ys
+	dX = (Xr-Xs)*111692.84
+	dY = (Yr-Ys)*111692.84 # convert into meters 
 	D = m.sqrt(dX**2 + dY**2)
 	Ms = m.tan(state[3]*0.01745)
 	Mr = dY/dX
@@ -56,51 +54,38 @@ while 1:
 	
 	# if(phone.check_recv()): #if new information from phone has been received
 	# 	state = phone.read() #update the state
-	
-	if(V2V.check_recv()):#if an alert has arrived, 
-		broadcast_Rx = V2V.read()#get the alert data
-		if(check_Relevance(state,broadcast_Rx)):
-			print('ALEEEERRTTTTTT!!!!')
+	try:
+		if(V2V.check_recv()):#if an alert has arrived, 
+			broadcast_Rx = V2V.read()#get the alert data
+			if(check_Relevance(state,broadcast_Rx)):
+				print('ALEEEERRTTTTTT!!!!')
+				phone.send(np.ones(5))
 
-	img = cap[i][0]
-	gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-	alert = check(img,gray,prev_gray)
-	prev_gray = gray
-	
-	if(alert[1]):
-		cv2.putText(img,'alert_center!', 
-		bottomLeftCornerOfText_Center, 
-		font, 
-		fontScale,
-		fontColor,
-		lineType)
-		cv2.imshow('window',img)
-	if(alert[0]):
-	    cv2.putText(img,'alert_left!', 
-	    bottomLeftCornerOfText_Left, 
-	    font, 
-	    fontScale,
-	    fontColor,
-	    lineType)
-	    cv2.imshow('window',img)
-	if(alert[2]):
-	    cv2.putText(img,'alert_right!', 
-	    bottomLeftCornerOfText_Right, 
-	    font, 
-	    fontScale,
-	    fontColor,
-	    lineType)
-	    cv2.imshow('window',img)
-	else:
-	    cv2.imshow('window',img)
+		ret,img = cap.read()
+		gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+		alert = check(img,gray,prev_gray)
+		prev_gray = gray
+
+		if(alert.any()):
+			cv2.putText(img,'ALERT!', 
+			bottomLeftCornerOfText_Center, 
+			font, 
+			fontScale,
+			fontColor,
+			lineType)
+			cv2.imshow('window',img)
+		else:
+		    cv2.imshow('window',img)
 
 
-	if(alert.any()):
-		print('ALEEEERRTTTTTT!!!!') #define this ples
-		if(alert.any() or state[5]<(-7)): #if optical flow threat is too great or deceleration is more than 7m/s^	
-			V2V.send(state[:-1]) # send everything except the last info which is the deceleration because we can only broadcast 40 bytes at a time(For now)
+		if(alert.any()):
+			print('ALEEEERRTTTTTT!!!!') #define this ples
+			if(alert.any() or state[4]<(-1)): #if optical flow threat is too great or deceleration is more than 7m/s^	
+				V2V.send(state) # send everything except the last info which is the deceleration because we can only broadcast 40 bytes at a time(For now)
 
-	ch = 0xFF & cv2.waitKey(5) #press ESC key to exit
-	if ch == 27:
-	    break
+		ch = 0xFF & cv2.waitKey(5) #press ESC key to exit
+		if ch == 27:
+		    break
+    except:
+    	i = 0
 cv2.destroyAllWindows() 	
