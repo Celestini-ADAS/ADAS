@@ -1,7 +1,8 @@
 # ADAS
 An alert generation-transmission system for vehicles.
-The android part of this project is in the repository "GPS-IMU" (the project was too big to be uploaded as a separate file).
-The project is meant to run on a raspi.
+The android part of this project is in the repository "GPS-IMU" https://github.com/Celestini-Lucifer/GPS-IMU-android-Alert
+
+The ADAS project is meant to run on a raspi.
 
 external dependencies : 
 
@@ -22,4 +23,6 @@ ADAS.py is supposed to generate an alert for the user when the vision component(
 ->COMS.py is a communications back end (not really that complex or sophisticated if you take a peek, it just makes our job easier, thats it) which can handle UART communications. It has been tested for xbees in transparent mode and for RF APC220s. Look into ADAS.py for understanding how to use them.
 
 # Further developments : 
--> refining the system.
+-> refining the system hardware.
+-> frequency hopping for different message types.
+-> This project is currently being integrated into a mini self driving car project to tinker with the possibilities of combining V2V communication into autonomous cars https://github.com/naughtyStark/Self-driving-car-STM-32
